@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pylab as plt
 import networkx as nx
 import numpy.linalg as LA
+from sklearn.neighbors import KDTree
 
 from shapely.geometry import Polygon, Point, LineString
 from queue import PriorityQueue
@@ -194,14 +195,14 @@ def create_voxmap(data, voxel_size=5):
     return voxmap
 
 
-def can_connect(n1, n2):
+def can_connect(n1, n2, polygons, heights):
     l = LineString([n1, n2])
-    for p in polygons:
-        if p.crosses(l) and p.height >= min(n1[2], n2[2]):
+    for p, h in zip(polygons, heights):
+        if p.crosses(l) and h >= min(n1[2], n2[2]):
             return False
     return True
 
-def create_graph(nodes, k):
+def create_graph(nodes, polygons, heights, k):
     g = nx.Graph()
     tree = KDTree(nodes)
     for n1 in nodes:
@@ -210,10 +211,10 @@ def create_graph(nodes, k):
 
         for idx in idxs:
             n2 = nodes[idx]
-            if n2 == n1:
+            if tuple(n2) == tuple(n1):
                 continue
 
-            if can_connect(n1, n2):
+            if can_connect(n1, n2, polygons, heights):
                 g.add_edge(n1, n2, weight=1)
     return g
 
@@ -259,6 +260,7 @@ def a_star_graph(graph, heuristic, start, goal):
         path = []
         n = goal
         path_cost = branch[n][0]
+        path.append(goal)
         while branch[n][1] != start:
             path.append(branch[n][1])
             n = branch[n][1]
@@ -266,8 +268,17 @@ def a_star_graph(graph, heuristic, start, goal):
 
     return path[::-1], path_cost
 
+def visualize_grid(grid, data):
+    fig = plt.figure()
 
-def visualize_graph(grid):
+    plt.imshow(grid, cmap='Greys', origin='lower')
+
+    plt.xlabel('NORTH')
+    plt.ylabel('EAST')
+
+    plt.show()
+
+def visualize_graph(grid, graph, nodes, data):
     fig = plt.figure()
 
     plt.imshow(grid, cmap='Greys', origin='lower')
@@ -276,7 +287,7 @@ def visualize_graph(grid):
     emin = np.min(data[:, 1])
 
     # draw edges
-    for (n1, n2) in g.edges:
+    for (n1, n2) in graph.edges:
         plt.plot([n1[1] - emin, n2[1] - emin], [n1[0] - nmin, n2[0] - nmin], 'black' , alpha=0.5)
 
     # draw all nodes
@@ -284,7 +295,7 @@ def visualize_graph(grid):
         plt.scatter(n1[1] - emin, n1[0] - nmin, c='blue')
 
     # draw connected nodes
-    for n1 in g.nodes:
+    for n1 in graph.nodes:
         plt.scatter(n1[1] - emin, n1[0] - nmin, c='red')
 
     plt.xlabel('NORTH')
@@ -292,7 +303,7 @@ def visualize_graph(grid):
 
     plt.show()
 
-def visualize_path(grid, data, path):
+def visualize_path(grid, graph, data, path, start, goal):
     '''
     Visualize path through the graph
     '''
@@ -305,12 +316,14 @@ def visualize_path(grid, data, path):
     emin = np.min(data[:, 1])
 
     # draw nodes
-    for n1 in g.nodes:
-        plt.scatter(n1[1] - emin, n1[0] - nmin, c='red')
-
-    # draw edges
-    for (n1, n2) in g.edges:
-        plt.plot([n1[1] - emin, n2[1] - emin], [n1[0] - nmin, n2[0] - nmin], 'black')
+    for n1 in graph.nodes:
+        if n1 == start:
+            c = 'blue'
+        elif n1 == goal:
+            c = 'green'
+        else:
+            c = 'red'
+        plt.scatter(n1[1] - emin, n1[0] - nmin, c=c)
 
     # TODO: add code to visualize the path
     path_pairs = zip(path[:-1], path[1:])
@@ -364,7 +377,7 @@ def extract_polygons(data):
     for i in range(data.shape[0]):
         north, east, alt, d_north, d_east, d_alt = data[i, :]
 
-        # TODO: Extract the 4 corners of each obstacle
+        # Extract the 4 corners of each obstacle
         #
         # NOTE: The order of the points needs to be counterclockwise
         # in order to work with the simple angle test
@@ -375,7 +388,7 @@ def extract_polygons(data):
         obstacle = [north - d_north, north + d_north, east - d_east, east + d_east]
         corners = [(obstacle[0], obstacle[2]), (obstacle[0], obstacle[3]), (obstacle[1], obstacle[3]), (obstacle[1], obstacle[2])]
 
-        # TODO: Compute the height of the polygon
+        # Compute the height of the polygon
         height = alt + d_alt
 
         p = Polygon(corners)
@@ -384,9 +397,15 @@ def extract_polygons(data):
     return polygons
 
 class Sampler:
-
-    def __init__(self, data):
-        self._polygons = extract_polygons(data)
+    '''
+    Sample points in free space at a certain height
+    '''
+    def __init__(self, data, zmax = 20):
+        '''
+        Parameters:
+            data -
+        '''
+        self._polygons, self._heights = np.transpose(extract_polygons(data))
         self._xmin = np.min(data[:, 0] - data[:, 3])
         self._xmax = np.max(data[:, 0] + data[:, 3])
 
@@ -395,13 +414,13 @@ class Sampler:
 
         self._zmin = 0
         # limit z-axis
-        self._zmax = 20
+        self._zmax = zmax
         # Record maximum polygon dimension in the xy plane
         # multiply by 2 since given sizes are half widths
         # This is still rather clunky but will allow us to
         # cut down the number of polygons we compare with by a lot.
         self._max_poly_xy = 2 * np.max((data[:, 3], data[:, 4]))
-        centers = np.array([p.center for p in self._polygons])
+        centers = np.array([(p.centroid.x, p.centroid.y) for p in self._polygons]).reshape(-1, 2)
         self._tree = KDTree(centers, metric='euclidean')
 
     def sample(self, num_samples):
@@ -418,7 +437,8 @@ class Sampler:
             if len(idxs) > 0:
                 for ind in idxs:
                     p = self._polygons[int(ind)]
-                    if p.contains(s) and p.height >= s[2]:
+                    h = self._heights[int(ind)]
+                    if not (p.contains(Point(s)) and h >= s[2]):
                         in_collision = True
             if not in_collision:
                 pts.append(s)
@@ -428,3 +448,7 @@ class Sampler:
     @property
     def polygons(self):
         return self._polygons
+
+    @property
+    def heights(self):
+        return self._heights
