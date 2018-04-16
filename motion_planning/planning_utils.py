@@ -5,6 +5,7 @@ import matplotlib.pylab as plt
 import networkx as nx
 import numpy.linalg as LA
 from sklearn.neighbors import KDTree
+from mpl_toolkits.mplot3d import Axes3D
 
 from shapely.geometry import Polygon, Point, LineString
 from queue import PriorityQueue
@@ -144,8 +145,6 @@ def a_star(grid, h, start, goal):
         print('Failed to find a path!')
         print('**********************')
     return path[::-1], path_cost
-
-
 
 def heuristic(position, goal_position):
     return np.linalg.norm(np.array(position) - np.array(goal_position))
@@ -354,6 +353,20 @@ def visualize_points(grid, data, points):
 
     plt.show()
 
+def visualize_voxmap(voxmpap):
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    ax.voxels(voxmap, edgecolor='k')
+    ax.set_xlim(voxmap.shape[0], 0)
+    ax.set_ylim(0, voxmap.shape[1])
+    # add a bit to z-axis height for visualization
+    ax.set_zlim(0, voxmap.shape[2]+20)
+
+    plt.xlabel('North')
+    plt.ylabel('East')
+
+    plt.show()
+
 # Define a simple function to add a z coordinate of 1
 def point(p):
     return np.array([p[0], p[1], 1.])
@@ -371,7 +384,7 @@ def collinearity_float(p1, p2, p3, epsilon=1e-6):
 
     return collinear
 
-def extract_polygons(data):
+def extract_polygons(data, safety_distance):
 
     polygons = []
     for i in range(data.shape[0]):
@@ -385,11 +398,13 @@ def extract_polygons(data):
         #
         # If the area of the polygon in shapely is 0
         # you've likely got a weird order.
-        obstacle = [north - d_north, north + d_north, east - d_east, east + d_east]
+        obstacle = [north - d_north - safety_distance, north + d_north + safety_distance, \
+                    east - d_east - safety_distance, east + d_east + safety_distance]
+
         corners = [(obstacle[0], obstacle[2]), (obstacle[0], obstacle[3]), (obstacle[1], obstacle[3]), (obstacle[1], obstacle[2])]
 
         # Compute the height of the polygon
-        height = alt + d_alt
+        height = alt + d_alt + safety_distance
 
         p = Polygon(corners)
         polygons.append((p, height))
@@ -400,26 +415,26 @@ class Sampler:
     '''
     Sample points in free space at a certain height
     '''
-    def __init__(self, data, zmax = 20):
+    def __init__(self, data, safety_distance, zmin = 10, zmax = 20):
         '''
         Parameters:
             data -
         '''
-        self._polygons, self._heights = np.transpose(extract_polygons(data))
+        self._polygons, self._heights = np.transpose(extract_polygons(data, safety_distance))
         self._xmin = np.min(data[:, 0] - data[:, 3])
         self._xmax = np.max(data[:, 0] + data[:, 3])
 
         self._ymin = np.min(data[:, 1] - data[:, 4])
         self._ymax = np.max(data[:, 1] + data[:, 4])
 
-        self._zmin = 0
+        self._zmin = zmin
         # limit z-axis
         self._zmax = zmax
         # Record maximum polygon dimension in the xy plane
         # multiply by 2 since given sizes are half widths
         # This is still rather clunky but will allow us to
         # cut down the number of polygons we compare with by a lot.
-        self._max_poly_xy = 2 * np.max((data[:, 3], data[:, 4]))
+        self._max_poly_xy = 2 * np.max((data[:, 3], data[:, 4])) + 2 * safety_distance
         centers = np.array([(p.centroid.x, p.centroid.y) for p in self._polygons]).reshape(-1, 2)
         self._tree = KDTree(centers, metric='euclidean')
 
