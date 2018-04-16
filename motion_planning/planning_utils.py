@@ -43,7 +43,7 @@ def create_grid(data, drone_altitude, safety_distance):
                 int(np.clip(east - d_east - safety_distance - east_min, 0, east_size-1)),
                 int(np.clip(east + d_east + safety_distance - east_min, 0, east_size-1)),
             ]
-            grid[obstacle[0]:obstacle[1]+1, obstacle[2]:obstacle[3]+1] = 1
+            grid[obstacle[0]:obstacle[1]+1, obstacle[2]:obstacle[3]+1] = alt + d_alt + safety_distance
 
     return grid, int(north_min), int(east_min)
 
@@ -149,7 +149,7 @@ def a_star(grid, h, start, goal):
 def heuristic(position, goal_position):
     return np.linalg.norm(np.array(position) - np.array(goal_position))
 
-def create_voxmap(data, voxel_size=5):
+def create_voxmap(data, safety_distance, voxel_size=5):
     """
     Returns a grid representation of a 3D configuration space
     based on given obstacle data.
@@ -182,10 +182,10 @@ def create_voxmap(data, voxel_size=5):
         # i.e. grid[0:5, 20:26, 2:7] = True
         north, east, alt, d_north, d_east, d_alt = data[i, :]
         obstacle = [
-            int(north - d_north - north_min) // voxel_size,
-            int(north + d_north - north_min) // voxel_size,
-            int(east - d_east - east_min) // voxel_size,
-            int(east + d_east - east_min) // voxel_size,
+            int(north - d_north - north_min - safety_distance) // voxel_size,
+            int(north + d_north - north_min + safety_distance) // voxel_size,
+            int(east - d_east - east_min - safety_distance) // voxel_size,
+            int(east + d_east - east_min + safety_distance) // voxel_size,
         ]
 
         height = int(alt + d_alt) // voxel_size
@@ -302,7 +302,7 @@ def visualize_graph(grid, graph, nodes, data):
 
     plt.show()
 
-def visualize_path(grid, graph, data, path, start, goal):
+def visualize_path(grid, graph, data, path, start, goal, mark_all=False):
     '''
     Visualize path through the graph
     '''
@@ -328,6 +328,8 @@ def visualize_path(grid, graph, data, path, start, goal):
     path_pairs = zip(path[:-1], path[1:])
     for (n1, n2) in path_pairs:
         plt.plot([n1[1] - emin, n2[1] - emin], [n1[0] - nmin, n2[0] - nmin], 'green')
+        if mark_all:
+            plt.scatter([n1[1] - emin, n2[1] - emin], [n1[0] - nmin, n2[0] - nmin], marker='x', color='purple', s=20*16)
 
     plt.xlabel('NORTH')
     plt.ylabel('EAST')
@@ -353,7 +355,10 @@ def visualize_points(grid, data, points):
 
     plt.show()
 
-def visualize_voxmap(voxmpap):
+def visualize_voxmap(voxmap, data, pt = None):
+    nmin = np.min(data[:, 0])
+    emin = np.min(data[:, 1])
+
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.voxels(voxmap, edgecolor='k')
@@ -365,6 +370,9 @@ def visualize_voxmap(voxmpap):
     plt.xlabel('North')
     plt.ylabel('East')
 
+    if pt is not None:
+        x, y, z = pt
+        ax.scatter([x], [y], [z], marker='X')
     plt.show()
 
 # Define a simple function to add a z coordinate of 1
