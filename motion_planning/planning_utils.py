@@ -9,6 +9,25 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from shapely.geometry import Polygon, Point, LineString
 from queue import PriorityQueue
+import utm
+
+def global_to_local(global_position, global_home):
+    '''
+    Converts global to local coordinates given global home
+    Returns:
+        (northing, easting, alt) relative to global home
+    '''
+    long_home, lat_home, alt_home = global_home
+    long, lat, alt = global_position
+
+    (easting, northing, _, _) = \
+        utm.from_latlon(lat, long)
+
+    (easting_home, northing_home, _, _) = utm.from_latlon(lat_home, long_home)
+
+    local_position = numpy.array([northing - northing_home, easting - easting_home, alt_home - alt])
+
+    return local_position
 
 def create_grid(data, drone_altitude, safety_distance):
     """
