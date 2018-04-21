@@ -7,7 +7,7 @@ from enum import Enum, auto
 
 import numpy as np
 
-from planning_utils import a_star, heuristic, create_grid, global_to_local
+from planning_utils import a_star, heuristic, create_graph, global_to_local
 from udacidrone import Drone
 from udacidrone.connection import MavlinkConnection
 from udacidrone.messaging import MsgID
