@@ -11,6 +11,15 @@ from shapely.geometry import Polygon, Point, LineString
 from queue import PriorityQueue
 import utm
 
+def find_point_closest_to(pt, arr):
+    '''
+    Given a point in 3D finds a point closest to it in the array
+    of 3D points, using Euclidean metric
+    '''
+    pts = np.array(arr)[:, np.newaxis] - pt
+    idx = np.argmin(LA.norm(pts, axis=2).squeeze())
+    return tuple(arr[idx])
+
 def global_to_local(global_position, global_home):
     '''
     Converts global to local coordinates given global home
@@ -28,6 +37,25 @@ def global_to_local(global_position, global_home):
     local_position = numpy.array([northing - northing_home, easting - easting_home, alt_home - alt])
 
     return local_position
+
+def local_to_global(local_position, global_home):
+
+    # TODO: get easting, northing, zone letter and number of global_home
+    # TODO: get (lat, lon) from local_position and converted global_home
+    # TODO: Create global_position of (lat, lon, alt)
+    northing, easting, alt = local_position
+    long_home, lat_home, alt_home = global_home
+
+    (easting_home, northing_home, zone_number, zone_letter) = utm.from_latlon(lat_home, long_home)
+
+    easting += easting_home
+    northing += northing_home
+    alt = -alt + alt_home
+    (lat, long) = utm.to_latlon(easting, northing, zone_number, zone_letter)
+
+    global_position = numpy.array([long, lat, alt])
+
+    return global_position
 
 def create_grid(data, drone_altitude, safety_distance):
     """
