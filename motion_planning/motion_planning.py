@@ -176,9 +176,10 @@ class MotionPlanning(Drone):
                 gpickle.write_gpickle(self.graph, self.graph_path)
 
     def pick_a_start(self):
-        grid_start = (self.local_position[0] - self.north_offset, self.local_position[1] - self.east_offset, self.local_position[2])
-        if not add_point_to_graph(grid_start, self.graph, self.polygons, self.heights, self.neighbors):
+        graph_start = self.local_position
+        if not add_point_to_graph(graph_start, self.graph, self.polygons, self.heights, self.neighbors):
             raise ValueError("Cannot set start to the start location")
+        return graph_start
 
     def pick_a_goal(self):
         '''
@@ -209,21 +210,22 @@ class MotionPlanning(Drone):
                                                                          self.local_position))
         # Define starting point on the grid (this is just grid center)
         # we need to add it to the graph
-        grid_start = self.pick_a_start()
+        graph_start = self.pick_a_start()
 
         # Set goal as some arbitrary position on the grid
         path = []
         while(len(path) == 0):
-            grid_goal = self.pick_a_goal()
+            graph_goal = self.pick_a_goal()
 
             # TODO: adapt to set goal as latitude / longitude position and convert
 
-            path, _ = a_star_graph(self.graph, heuristic, grid_start, grid_goal)
+            path, _ = a_star_graph(self.graph, heuristic, graph_start, graph_goal)
 
-        print('Local Start and Goal: ', grid_start, grid_goal)
+        print('Local Start and Goal: ', graph_start, graph_goal)
 
         # Convert path to waypoints
-        waypoints = [[p[0] + north_offset, p[1] + east_offset, p[2], 0] for p in path]
+        #waypoints = [[p[0] + north_offset, p[1] + east_offset, p[2], 0] for p in path]
+        waypoints = path
         self.target_position = waypoints[-1]
 
         # Set self.waypoints
