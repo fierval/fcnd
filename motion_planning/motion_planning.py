@@ -165,15 +165,13 @@ class MotionPlanning(Drone):
         sampler = Sampler(self.data, SAFETY_DISTANCE, zmin=10, zmax=TARGET_ALTITUDE)
         candidates = sampler.sample(300)
         for c in candidates:
-            if add_point_to_graph(c, self.graph, self.polygons, self.heights, self.neighbors):
+            if add_point_to_graph(pt, self.graph, self.polygons, self.heights, self.neighbors):
                 return c
         raise ValueError("Could not pick a goal point!")
 
     def plan_path(self):
         self.flight_state = States.PLANNING
         print("Searching for a path ...")
-
-        self.target_position[2] = TARGET_ALTITUDE
 
         # TODO: set home position to (lon0, lat0, 0)
         self.set_home_position(self.lat0, self.lon0, 0)
@@ -188,7 +186,7 @@ class MotionPlanning(Drone):
                                                                          self.local_position))
         # Define starting point on the grid (this is just grid center)
         # we need to add it to the graph
-        grid_start = (self.local_position[0] - self.north_offset, self.local_position[1] - self.east_offset, -self.local_position[2])
+        grid_start = (self.local_position[0] - self.north_offset, self.local_position[1] - self.east_offset, self.local_position[2])
         add_point_to_graph(grid_start, self.graph, self.polygons, self.heights, self.neighbors)
 
         # Set goal as some arbitrary position on the grid
@@ -203,7 +201,7 @@ class MotionPlanning(Drone):
         print('Local Start and Goal: ', grid_start, grid_goal)
 
         # Convert path to waypoints
-        waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in path]
+        waypoints = [[p[0] + north_offset, p[1] + east_offset, p[2], 0] for p in path]
         self.target_position = waypoints[-1]
 
         # Set self.waypoints
