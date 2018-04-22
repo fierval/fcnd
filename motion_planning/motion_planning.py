@@ -157,6 +157,11 @@ class MotionPlanning(Drone):
 
         self.graph = create_graph(nodes, sampler.polygons, sampler.heights, self.neighbors)
 
+    def pick_a_start(self):
+        grid_start = (self.local_position[0] - self.north_offset, self.local_position[1] - self.east_offset, self.local_position[2])
+        if not add_point_to_graph(grid_start, self.graph, self.polygons, self.heights, self.neighbors):
+            raise ValueError("Cannot set start to the start location")
+
     def pick_a_goal(self):
         '''
         Try random sampling the space and picking an appropriate goal
@@ -186,8 +191,7 @@ class MotionPlanning(Drone):
                                                                          self.local_position))
         # Define starting point on the grid (this is just grid center)
         # we need to add it to the graph
-        grid_start = (self.local_position[0] - self.north_offset, self.local_position[1] - self.east_offset, self.local_position[2])
-        add_point_to_graph(grid_start, self.graph, self.polygons, self.heights, self.neighbors)
+        grid_start = self.pick_a_start()
 
         # Set goal as some arbitrary position on the grid
         path = []
