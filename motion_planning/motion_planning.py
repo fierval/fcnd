@@ -1,3 +1,4 @@
+import os
 import argparse
 import time
 import msgpack
@@ -76,7 +77,7 @@ class MotionPlanning(Drone):
         print("Preparing flight graph...")
         start_time = time.time()
         self.prepare_flight_graph()
-        print("Graph prepared in {:.3f} sec", time.time() - start_time)
+        print("Graph prepared in {:.3f} sec".format(time.time() - start_time))
 
     def local_position_callback(self):
         if self.flight_state == States.TAKEOFF:
@@ -163,13 +164,13 @@ class MotionPlanning(Drone):
             self.graph = gpickle.read_gpickle(self.graph_path)
 
         # Sample some random points on the current grid
-        sampler = Sampler(self.data, SAFETY_DISTANCE, zmin=10, zmax=TARGET_ALTITUDE)
-        self.polygons = sampler.polygons
-        self.heights = sampler.heights
+        self.sampler = Sampler(self.data, SAFETY_DISTANCE, zmin=TARGET_ALTITUDE, zmax=TARGET_ALTITUDE)
+        self.polygons = self.sampler.polygons
+        self.heights = self.sampler.heights
 
         # if we don't have the graph by now - let's create it
         if self.graph is None:
-            nodes = sampler.sample(self.sample_size)
+            nodes = self.sampler.sample(self.sample_size)
             self.graph = create_graph(nodes, sampler.polygons, sampler.heights, self.neighbors)
             # if we have specified the path - we want to save it
             if self.graph_path is not None:
@@ -179,18 +180,17 @@ class MotionPlanning(Drone):
         graph_start = self.local_position
         if not add_point_to_graph(graph_start, self.graph, self.polygons, self.heights, self.neighbors):
             raise ValueError("Cannot set start to the start location")
-        return graph_start
+        return tuple(graph_start)
 
     def pick_a_goal(self):
         '''
         Try random sampling the space and picking an appropriate goal
         '''
         nodes = list(self.graph.nodes)
-        sampler = Sampler(self.data, SAFETY_DISTANCE, zmin=10, zmax=TARGET_ALTITUDE)
-        candidates = sampler.sample(300)
-        for c in candidates:
+        candidates = self.sampler.sample(300)
+        for pt in candidates:
             if add_point_to_graph(pt, self.graph, self.polygons, self.heights, self.neighbors):
-                return c
+                return tuple(pt)
         raise ValueError("Could not pick a goal point!")
 
     def plan_path(self):
@@ -204,7 +204,6 @@ class MotionPlanning(Drone):
         # TODO: convert to current local position using global_to_local()
         # Make sure we are at the right place.
         north, east, alt = global_to_local(self.global_home, self.global_home)
-        self.cmd_position(north, east, alt, 0)
 
         print('global home {0}, position {1}, local position {2}'.format(self.global_home, self.global_position,
                                                                          self.local_position))
@@ -217,16 +216,12 @@ class MotionPlanning(Drone):
         while(len(path) == 0):
             graph_goal = self.pick_a_goal()
 
-            # TODO: adapt to set goal as latitude / longitude position and convert
-
             path, _ = a_star_graph(self.graph, heuristic, graph_start, graph_goal)
 
         print('Local Start and Goal: ', graph_start, graph_goal)
 
         # Convert path to waypoints
-        #waypoints = [[p[0] + north_offset, p[1] + east_offset, p[2], 0] for p in path]
-        waypoints = path
-        self.target_position = waypoints[-1]
+        waypoints = [[p[0], p[1], p[2], 0] for p in path]
 
         # Set self.waypoints
         self.waypoints = waypoints
@@ -252,7 +247,7 @@ if __name__ == "__main__":
     parser.add_argument('--host', type=str, default='127.0.0.1', help="host address, i.e. '127.0.0.1'")
     args = parser.parse_args()
 
-    conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=1600)
+    conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=16000)
     drone = MotionPlanning(conn, graph_data='flygraph.gpickle')
     time.sleep(1)
 
