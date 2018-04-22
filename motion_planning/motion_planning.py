@@ -14,6 +14,8 @@ from udacidrone.connection import MavlinkConnection
 from udacidrone.messaging import MsgID
 from udacidrone.frame_utils import global_to_local
 
+from networkx.readwrite import gpickle
+
 np.set_printoptions(precision=4, suppress=True)
 
 class States(Enum):
@@ -32,7 +34,13 @@ SAFETY_DISTANCE = 5
 
 class MotionPlanning(Drone):
 
-    def __init__(self, connection, mapfile='colliders.csv'):
+    def __init__(self, connection, mapfile='colliders.csv', graph_data=None):
+        '''
+        Parameters:
+            connection - connection to the simulator
+            mapfile - collistion map
+            graph_data - a pickle of the previously created graph
+        '''
         super().__init__(connection)
 
         self.target_position = np.array([0.0, 0.0, 0.0])
@@ -40,10 +48,13 @@ class MotionPlanning(Drone):
         self.in_mission = True
         self.check_state = {}
 
+        self.graph_path = graph_data
+        self.graph = None
+
         # parameters for stochastic sampling
         # and NN algorithm
         self.sample_size = 2000
-        self.neighbors = 10
+        self.neighbors = 12
 
         # read lat0 and long0
         with open(mapfile) as f:
@@ -148,14 +159,21 @@ class MotionPlanning(Drone):
         '''
         Creates the graph used to fly the drone
         '''
+        if self.graph_path is not None and os.path.exists(self.graph_path):
+            self.graph = gpickle.read_gpickle(self.graph_path)
+
         # Sample some random points on the current grid
         sampler = Sampler(self.data, SAFETY_DISTANCE, zmin=10, zmax=TARGET_ALTITUDE)
         self.polygons = sampler.polygons
         self.heights = sampler.heights
 
-        nodes = sampler.sample(self.sample_size)
-
-        self.graph = create_graph(nodes, sampler.polygons, sampler.heights, self.neighbors)
+        # if we don't have the graph by now - let's create it
+        if self.graph is None:
+            nodes = sampler.sample(self.sample_size)
+            self.graph = create_graph(nodes, sampler.polygons, sampler.heights, self.neighbors)
+            # if we have specified the path - we want to save it
+            if self.graph_path is not None:
+                gpickle.write_gpickle(self.graph, self.graph_path)
 
     def pick_a_start(self):
         grid_start = (self.local_position[0] - self.north_offset, self.local_position[1] - self.east_offset, self.local_position[2])
@@ -233,7 +251,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=1600)
-    drone = MotionPlanning(conn)
+    drone = MotionPlanning(conn, graph_data='flygraph.gpickle')
     time.sleep(1)
 
     drone.start()
