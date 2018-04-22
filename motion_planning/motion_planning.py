@@ -2,12 +2,13 @@ import argparse
 import time
 import msgpack
 import csv
+import time
 
 from enum import Enum, auto
 
 import numpy as np
 
-from planning_utils import a_star, heuristic, create_grid, create_graph, global_to_local, Sampler
+from planning_utils import *
 from udacidrone import Drone
 from udacidrone.connection import MavlinkConnection
 from udacidrone.messaging import MsgID
@@ -24,6 +25,8 @@ class States(Enum):
     DISARMING = auto()
     PLANNING = auto()
 
+# we are flying based on a random graph.
+# increase accessibility by flying high
 TARGET_ALTITUDE = 25
 SAFETY_DISTANCE = 5
 
@@ -36,6 +39,11 @@ class MotionPlanning(Drone):
         self.waypoints = []
         self.in_mission = True
         self.check_state = {}
+
+        # parameters for stochastic sampling
+        # and NN algorithm
+        self.sample_size = 2000
+        self.neighbors = 10
 
         # read lat0 and long0
         with open(mapfile) as f:
@@ -53,6 +61,11 @@ class MotionPlanning(Drone):
         self.register_callback(MsgID.LOCAL_POSITION, self.local_position_callback)
         self.register_callback(MsgID.LOCAL_VELOCITY, self.velocity_callback)
         self.register_callback(MsgID.STATE, self.state_callback)
+
+        print("Preparing flight graph...")
+        start_time = time.time()
+        self.prepare_flight_graph()
+        print("Graph prepared in {:.3f} sec", time.time() - start_time)
 
     def local_position_callback(self):
         if self.flight_state == States.TAKEOFF:
@@ -125,12 +138,36 @@ class MotionPlanning(Drone):
         data = msgpack.dumps(self.waypoints)
         self.connection._master.write(data)
 
+    def get_current_grid(self):
+        '''
+        Create the grid for visualization & offsets
+        '''
+        self.grid, self.north_offset, self.east_offset = create_grid(self.data, TARGET_ALTITUDE, SAFETY_DISTANCE)
+
     def prepare_flight_graph(self):
+        '''
+        Creates the graph used to fly the drone
+        '''
+        # Sample some random points on the current grid
+        sampler = Sampler(self.data, SAFETY_DISTANCE, zmin=10, zmax=TARGET_ALTITUDE)
+        self.polygons = sampler.polygons
+        self.heights = sampler.heights
 
-        # Define a grid for a particular altitude and safety margin around obstacles
-        grid, north_offset, east_offset = create_grid(self.data, TARGET_ALTITUDE, SAFETY_DISTANCE)
+        nodes = sampler.sample(self.sample_size)
 
-        print("North offset = {0}, east offset = {1}".format(north_offset, east_offset))
+        self.graph = create_graph(nodes, sampler.polygons, sampler.heights, self.neighbors)
+
+    def pick_a_goal(self):
+        '''
+        Try random sampling the space and picking an appropriate goal
+        '''
+        nodes = list(self.graph.nodes)
+        sampler = Sampler(self.data, SAFETY_DISTANCE, zmin=10, zmax=TARGET_ALTITUDE)
+        candidates = sampler.sample(300)
+        for c in candidates:
+            if add_point_to_graph(c, self.graph, self.polygons, self.heights, self.neighbors):
+                return c
+        raise ValueError("Could not pick a goal point!")
 
     def plan_path(self):
         self.flight_state = States.PLANNING
@@ -150,24 +187,20 @@ class MotionPlanning(Drone):
         print('global home {0}, position {1}, local position {2}'.format(self.global_home, self.global_position,
                                                                          self.local_position))
         # Define starting point on the grid (this is just grid center)
-        # TODO: convert start position to current position rather than map center
-        # set start position to where we are
-        # We set the start to the current position of the drone
-        # And we'll then add it to the position graph
-        grid_start = self.local_position
-
+        # we need to add it to the graph
+        grid_start = (self.local_position[0] - self.north_offset, self.local_position[1] - self.east_offset, -self.local_position[2])
+        add_point_to_graph(grid_start, self.graph, self.polygons, self.heights, self.neighbors)
 
         # Set goal as some arbitrary position on the grid
-        grid_goal = (-north_offset + 10, -east_offset + 10)
-        # TODO: adapt to set goal as latitude / longitude position and convert
+        path = []
+        while(len(path) == 0):
+            grid_goal = self.pick_a_goal()
 
-        # Run A* to find a path from start to goal
-        # TODO: add diagonal motions with a cost of sqrt(2) to your A* implementation
-        # or move to a different search space such as a graph (not done here)
+            # TODO: adapt to set goal as latitude / longitude position and convert
+
+            path, _ = a_star_graph(self.graph, heuristic, grid_start, grid_goal)
+
         print('Local Start and Goal: ', grid_start, grid_goal)
-        path, _ = a_star(grid, heuristic, grid_start, grid_goal)
-        # TODO: prune path to minimize number of waypoints
-        # TODO (if you're feeling ambitious): Try a different approach altogether!
 
         # Convert path to waypoints
         waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in path]
@@ -195,7 +228,7 @@ if __name__ == "__main__":
     parser.add_argument('--host', type=str, default='127.0.0.1', help="host address, i.e. '127.0.0.1'")
     args = parser.parse_args()
 
-    conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=60)
+    conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=1600)
     drone = MotionPlanning(conn)
     time.sleep(1)
 

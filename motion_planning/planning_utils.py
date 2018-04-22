@@ -248,6 +248,26 @@ def can_connect(n1, n2, polygons, heights):
             return False
     return True
 
+def add_point_to_graph(pt, g, polygons, heights, k):
+    '''
+    Given a point, try adding it to the graph, connecting it
+    to k nearest neighbors
+
+    Returns:
+        True if the point was succesfully added
+    '''
+    ret = False
+    nodes = list(g.nodes)
+    tree = KDTree(nodes)
+    idxs = tree.query([pt], k, return_distance=False)[0]
+    for idx in idxs:
+        n2 = tuple(nodes[idx])
+        if pt == n2:
+            return True
+        if can_connect(pt, n2, polygons, heights):
+            g.add_edge(pt, n2, weight=LA.norm(np.array(pt) - np.array(n2)))
+    return ret
+
 def create_graph(nodes, polygons, heights, k):
     g = nx.Graph()
     tree = KDTree(nodes)
@@ -261,7 +281,7 @@ def create_graph(nodes, polygons, heights, k):
                 continue
 
             if can_connect(n1, n2, polygons, heights):
-                g.add_edge(n1, n2, weight=1)
+                g.add_edge(n1, n2, weight=LA.norm(np.array(n2) - np.array(n1)))
     return g
 
 
