@@ -20,7 +20,7 @@ class States(Enum):
 
 class BackyardFlyer(Drone):
 
-    def __init__(self, connection, target_altitude = 3, square_offset = 10):
+    def __init__(self, connection, target_altitude = 25, square_offset = -13.34987):
         '''
         Parameters:
             connection - connection instance
@@ -66,20 +66,20 @@ class BackyardFlyer(Drone):
             elif self.has_arrived(self.all_waypoints[self.cur_waypoint]):
                 self.cur_waypoint += 1
                 self.waypoint_transition()
-                
+
     def has_arrived(self, waypoint):
         dest_n, dest_e, _, _ = waypoint
         cur_n, cur_e, _ = self.local_position
-        
+
         return abs(cur_n - dest_n) < 0.1 and abs(cur_e - dest_e) < 0.1
-    
+
     def velocity_callback(self):
         """
         TODO: Implement this method
 
         This triggers when `MsgID.LOCAL_VELOCITY` is received and self.local_velocity contains new data
         """
-                
+
         if self.flight_state == States.LANDING:
             if ((self.global_position[2] - self.global_home[2] < 0.1) and
             abs(self.local_position[2]) < 0.01):
@@ -112,7 +112,7 @@ class BackyardFlyer(Drone):
 
     def is_done(self):
         return self.cur_waypoint >= len(self.all_waypoints)
-    
+
     def calculate_box(self):
         """TODO: Fill out this method
 
@@ -122,7 +122,7 @@ class BackyardFlyer(Drone):
 
         n, e, a = self.target_position
         h = 0
-        return [(n + offset, e, a, h), (n + offset, e + offset, a, h), (n, e + offset, a, h), (n, e, a, h)]
+        return [(n + offset, e, a - 5, h), (n + offset, e + offset, a - 10, h), (n, e + offset, a - 15, h), (n, e, a - 7, h)]
 
     def arming_transition(self):
         """TODO: Fill out this method
@@ -160,7 +160,7 @@ class BackyardFlyer(Drone):
         """
         if self.is_done():
             return
-  
+
         print(f"waypoint transition: {self.all_waypoints[self.cur_waypoint]}")
 
         self.cmd_position(*self.all_waypoints[self.cur_waypoint])
