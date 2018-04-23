@@ -105,7 +105,7 @@ Here the number of connected neighbors is 12 - a bit high, but I could not make 
 
 ### Execute the flight
 
-Here is a computed path:
+Here is a computed path. It consists of 18 waypoints - unusual stroke of luck, it is hard to get paths longer than 11 points on this graph:
 
 ![path](images/path.png)
 
