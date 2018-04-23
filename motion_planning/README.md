@@ -51,6 +51,8 @@ Because the graph is similar to a map DVD used by GPS systems to compute routes,
 
 **Note:** Since the simulator may abort the connection before the graph is actually computed, I have created the graph in the [Receding Horizon Notebook](https://github.com/fierval/fcnd/blob/master/motion_planning/Receding-Horizon.ipynb)
 
+`MotionPlanning` class has been modified to take the collision description file, as well as an optional pickled `nx.Graph`.
+
 #### 1. Set your global home position
 
 All data is read upon instantiation of the `MotionPlanning` object. Home position is set at the top of `plan_path`
