@@ -155,9 +155,9 @@ class MotionPlanning(Drone):
         self.stop()
         self.in_mission = False
 
-    def send_waypoints(self):
+    def send_waypoints(self, waypoints):
         print("Sending waypoints to simulator ...")
-        data = msgpack.dumps(self.waypoints)
+        data = msgpack.dumps(waypoints)
         self.connection._master.write(data)
 
     def get_current_grid(self):
@@ -186,11 +186,10 @@ class MotionPlanning(Drone):
             if self.graph_path is not None:
                 gpickle.write_gpickle(self.graph, self.graph_path)
 
-    def pick_a_start(self):
-        graph_start = [0.0, 0.0, 0.0]
-        if not add_point_to_graph(graph_start, self.graph, self.polygons, self.heights, self.neighbors):
+    def pick_a_start(self, start):
+        if not add_point_to_graph(start, self.graph, self.polygons, self.heights, self.neighbors):
             raise ValueError("Cannot set start to the start location")
-        return tuple(graph_start)
+        return tuple(start)
 
     def pick_a_goal(self):
         '''
@@ -219,7 +218,7 @@ class MotionPlanning(Drone):
                                                                           self.local_position))
         # Define starting point on the grid (this is just grid center)
         # we need to add it to the graph
-        graph_start = self.pick_a_start()
+        graph_start = self.pick_a_start((north, east, alt))
 
         # Set goal as some arbitrary position on the grid
         path = []
@@ -232,13 +231,17 @@ class MotionPlanning(Drone):
         print('Local Start and Goal: ', graph_start, graph_goal)
         print('Path length: ', len(path))
 
-        # Convert path to waypoints
-        waypoints = [[int(p[0]), int(p[1]), int(p[2]), 0] for p in path][1:]
-
         # Set self.waypoints
-        self.waypoints = waypoints
+        self.waypoints = np.array(path).reshape(-1, 3)[1:]
+        zeros = np.zeros((self.waypoints.shape[0], 1))
+        self.waypoints = list(np.hstack([self.waypoints, zeros]))
+
+        # Convert path to waypoints
+        waypoints = np.array(self.waypoints, dtype=np.int, copy=True)
+        waypoints = [[int(w[0]), int(w[1]), int(w[2]), int(w[3])] for w in waypoints]
+
         # TODO: send waypoints to sim (this is just for visualization of waypoints)
-        self.send_waypoints()
+        self.send_waypoints(waypoints)
 
     def start(self):
         self.start_log("Logs", "NavLog.txt")
