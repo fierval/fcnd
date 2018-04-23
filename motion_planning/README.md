@@ -70,7 +70,7 @@ Add the starting point to the graph by calling `pick_a_start`
 
 #### 4. Set grid goal position from geodetic coords
 
-In this implementation, we are striving for as "spectacular" paths as possible. This drone is seriously into aesthetics of flight, so we implement a heuristic to search for the goal (lines 226 - 231 in `motion_planning.py`):
+In this implementation, we are striving for as "spectacular" a path as possible. This drone is seriously into aesthetics of flight, so we implement a heuristic to search for the goal (lines 226 - 231 in `motion_planning.py`):
 
 ```python
 path = []
@@ -80,9 +80,9 @@ while(len(path) < 13 and tries < 30):
     path, _ = a_star_graph(self.graph, heuristic, graph_start, graph_goal)
     tries += 1
 ```
-The key here is `pick_a_goal` - the function that choses a number of random goals for us and if that goal can be added to the graph (it's not an obstacle of any kind)
+The key here is `pick_a_goal` - the function that chooses a number of random goals for us and if the first goal picked from that selection can be added to the graph (it's not an obstacle of any kind), selects it. (The process is repeated for all random picked goals until one that can be added to the graph is found).
 
-Since we want a path of a certain length, we may have a few tries before we pick the satisfying goal. All the "failed" goals will be added to the graph - which is fine. They are all valid points and there will not be too many of them.
+Since we want a path of a certain length, we may have to run a few tries before we pick the satisfying goal. All the goals we rejected due to too short a path will stay added to the graph. They are all valid points and there will not be too many of them.
 
 **Note:** In order to satisfy the requirement of setting the goal from geodetic coordinates, `pick_a_goal_global` function is provided
 
