@@ -223,12 +223,18 @@ class MotionPlanning(Drone):
         # Set goal as some arbitrary position on the grid
         path = []
         tries = 0
-        while(len(path) < 10 and tries < 10):
+        while(len(path) < 13 and tries < 30):
             graph_goal = self.pick_a_goal()
             path, _ = a_star_graph(self.graph, heuristic, graph_start, graph_goal)
             tries += 1
 
         print('Local Start and Goal: ', graph_start, graph_goal)
+
+        # for visualization
+        self.start = graph_start
+        self.goal = graph_goal
+        self.path = path
+
         print('Path length: ', len(path))
 
         # Set self.waypoints

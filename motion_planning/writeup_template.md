@@ -1,10 +1,11 @@
 ## Project: 3D Motion Planning
-![Quad Image](./misc/enroute.png)
 
----
+**Click below see it fly**
 
+[![Flying Drone](https://img.youtube.com/vi/h1Mf6xeok8g/0.jpg)](https://youtu.be/JccKcmcnVCU)
 
 # Required Steps for a Passing Submission:
+
 1. Load the 2.5D map in the colliders.csv file describing the environment.
 2. Discretize the environment into a grid or graph representation.
 3. Define the start and goal locations.
@@ -15,17 +16,10 @@
 8. Congratulations!  Your Done!
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/1534/view) Points
-### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
-
----
-### Writeup / README
-
-#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  
-
-You're reading it! Below I describe how I addressed each rubric point and where in my code each point is handled.
 
 ### Explain the Starter Code
 
+Unlike some drones out there that prefer to fly cautiously looking around before they take the next step, afraid to soar, wasting computing cycles, this drone lives dangerously. It flies in a range of heights (from 10 to 25 m), on a pre-computed graph of
 #### 1. Explain the functionality of what's provided in `motion_planning.py` and `planning_utils.py`
 These scripts contain a basic planning implementation that includes...
 
@@ -64,7 +58,7 @@ This step is to add flexibility to the desired goal location. Should be able to 
 #### 5. Modify A* to include diagonal motion (or replace A* altogether)
 Minimal requirement here is to modify the code in planning_utils() to update the A* implementation to include diagonal motions on the grid that have a cost of sqrt(2), but more creative solutions are welcome. Explain the code you used to accomplish this step.
 
-#### 6. Cull waypoints 
+#### 6. Cull waypoints
 For this step you can use a collinearity test or ray tracing method like Bresenham. The idea is simply to prune your path of unnecessary waypoints. Explain the code you used to accomplish this step.
 
 
@@ -74,7 +68,7 @@ For this step you can use a collinearity test or ray tracing method like Bresenh
 It works!
 
 ### Double check that you've met specifications for each of the [rubric](https://review.udacity.com/#!/rubrics/1534/view) points.
-  
+
 # Extra Challenges: Real World Planning
 
 For an extra challenge, consider implementing some of the techniques described in the "Real World Planning" lesson. You could try implementing a vehicle model to take dynamic constraints into account, or implement a replanning method to invoke if you get off course or encounter unexpected obstacles.
