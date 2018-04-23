@@ -193,6 +193,17 @@ class MotionPlanning(Drone):
             raise ValueError("Cannot set start to the start location")
         return tuple(start)
 
+    def pick_a_goal_global(self, global_goal):
+        '''
+        Given (lon, lat, alt) convert it to a local goal point
+        '''
+        # this will throw if not decomposable
+        lon, lat, alt = global_goal
+        local_goal = global_to_local(global_goal, self.global_home)
+        if not add_point_to_graph(local_goal, self.graph, self.polygons, heights, self.neighbors):
+            raise ValueError("Goal could not be set")
+        return tuple(local_goal)
+
     def pick_a_goal(self):
         '''
         Try random sampling the space and picking an appropriate goal

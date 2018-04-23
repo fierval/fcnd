@@ -30,7 +30,7 @@ Advantages:
 
 #### `motion_planning.py` and `planning_utils.py`
 
-`planning_utils.py` is a kitchen sink that consists all kinds of functions, useful and not so much. These are functions from lesson exercises, sometimes modified, sometimes left as is. There is also a useful `Sampler` class, that computes obstacle polygons and their heights. This is used for creating graphs and adding points to them (like start and goal), as well as computes nodes of the flight graph through stochastic sampling followed by elimination of points that coincide with obstacles.
+`planning_utils.py` is a kitchen sink that consists all kinds of functions, useful and not so much. These are functions from lesson exercises, sometimes modified, sometimes left as is. There is also a useful `Sampler` class, that computes obstacle polygons and their heights. This is used for creating graphs and adding points to them (like start and goal), as well as computing nodes of the flight graph through stochastic sampling followed by elimination of points that coincide with obstacles.
 
 The file also contains several `visualize_xxx` functions, used for visualizations in the notebooks.
 
@@ -84,15 +84,19 @@ The key here is `pick_a_goal` - the function that choses a number of random goal
 
 Since we want a path of a certain length, we may have a few tries before we pick the satisfying goal. All the "failed" goals will be added to the graph - which is fine. They are all valid points and there will not be too many of them.
 
+**Note:** In order to satisfy the requirement of setting the goal from geodetic coordinates, `pick_a_goal_global` function is provided
+
 #### 5. Modify A* to include diagonal motion (or replace A* altogether)
 
 Graph creation was modified to include the actual cost of travel along the edge as the Euclidean distance between its nodes.
 
 `extract_polygons` was modified to "pad" polygons with a safe travel distance.
 
+`a_star_graph` was used to compute the path in 3D.
+
 #### 6. Cull waypoints
 
-Since all the points in the graph are in actually in 3D and selected at random, colinearity is not going to be useful at all. Brezenham could be useful, but tough to compute. In this exercise, I am trying to find a path with **more** rather than **less** points because by construction large areas of the grid are accessible through few waypoints.
+Since all the points in the graph are in 3D and selected at random, colinearity is not going to be useful at all. Brezenham could be useful, but tough to compute. In this exercise, I am trying to find a path with **more** rather than **less** points because by construction large areas of the grid are accessible through few waypoints.
 
 The optimization that comes to mind would be to create a less connected graph:
 ![graph](images/graph.png)
@@ -105,7 +109,9 @@ Here is a computed path:
 
 ![path](images/path.png)
 
-#### See it fly!
+### See it fly!
+
+Click below for the YouTube video of flight along the above path. The [Motion Planning Notebook](https://github.com/fierval/fcnd/blob/master/motion_planning/Motion%20Planning.ipynb) is the source of all the images in this doc.
 
 [![Flying Drone](https://img.youtube.com/vi/h1Mf6xeok8g/0.jpg)](https://youtu.be/JccKcmcnVCU)
 
