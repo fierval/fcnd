@@ -174,16 +174,18 @@ class MotionPlanning(Drone):
             self.graph = gpickle.read_gpickle(self.graph_path)
 
         # Sample some random points on the current grid
-        self.sampler = Sampler(self.data, SAFETY_DISTANCE, zmin=TARGET_ALTITUDE//2, zmax=TARGET_ALTITUDE)
+        self.sampler = Sampler(self.data, SAFETY_DISTANCE, zmin=10, zmax=TARGET_ALTITUDE)
         self.polygons = self.sampler.polygons
         self.heights = self.sampler.heights
 
         # if we don't have the graph by now - let's create it
         if self.graph is None:
             nodes = self.sampler.sample(self.sample_size)
-            self.graph = create_graph(nodes, sampler.polygons, sampler.heights, self.neighbors)
+            print("Creating graph...")
+            self.graph = create_graph(nodes, self.sampler.polygons, self.sampler.heights, self.neighbors)
             # if we have specified the path - we want to save it
             if self.graph_path is not None:
+                print("Saving graph: ", self.graph_path)
                 gpickle.write_gpickle(self.graph, self.graph_path)
 
     def pick_a_start(self, start):
@@ -197,8 +199,11 @@ class MotionPlanning(Drone):
         '''
         nodes = list(self.graph.nodes)
         candidates = self.sampler.sample(300)
+        # We grow the heights here, because we are going to be landing at this
+        # point and we don't want to land on a roof-top
+        heights = np.ones_like(self.heights) * (TARGET_ALTITUDE + SAFETY_DISTANCE)
         for pt in candidates:
-            if add_point_to_graph(pt, self.graph, self.polygons, self.heights, self.neighbors):
+            if add_point_to_graph(pt, self.graph, self.polygons, heights, self.neighbors):
                 return tuple(pt)
         raise ValueError("Could not pick a goal point!")
 
@@ -212,7 +217,7 @@ class MotionPlanning(Drone):
         # TODO: retrieve current global position
         # TODO: convert to current local position using global_to_local()
         # Make sure we are at the right place.
-        north, east, alt = global_to_local(self.global_home, self.global_home)
+        north, east, alt = global_to_local(self.global_position, self.global_home)
 
         print('global home {0}, position {1}, local position {2}'.format(self.global_home, self.global_position,
                                                                           self.local_position))

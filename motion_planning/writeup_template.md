@@ -17,44 +17,72 @@
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/1534/view) Points
 
-### Explain the Starter Code
+### Introduction
 
-Unlike some drones out there that prefer to fly cautiously looking around before they take the next step, afraid to soar, wasting computing cycles, this drone lives dangerously. It flies in a range of heights (from 10 to 25 m), on a pre-computed graph of
-#### 1. Explain the functionality of what's provided in `motion_planning.py` and `planning_utils.py`
-These scripts contain a basic planning implementation that includes...
+Unlike some drones out there that prefer to fly cautiously looking around before they take the next step, afraid to soar, wasting computing cycles, this drone lives dangerously. It flies in a range of heights (from 10 to 25 m), on a pre-computed graph of points spanning (most of) the collision grid.
 
-And here's a lovely image of my results (ok this image has nothing to do with it, but it's a nice example of how to include images in your writeup!)
-![Top Down View](./misc/high_up.png)
+This approach should be complemented with a receding horizon algorithm (not implemented in this project) for flying on a non-static grid.
 
-Here's | A | Snappy | Table
---- | --- | --- | ---
-1 | `highlight` | **bold** | 7.41
-2 | a | b | c
-3 | *italic* | text | 403
-4 | 2 | 3 | abcd
+Advantages:
+
+* The graph can be pre-computed
+* Flying on the graph is less computationally intensive than flying on the grid as there are fewer points that span more space.
+* No need for waypoint pruning: we are already flying on a sparce collection of points
+
+#### `motion_planning.py` and `planning_utils.py`
+
+`planning_utils.py` is a kitchen sink that consists all kinds of functions, useful and not so much. These are functions from lesson exercises, sometimes modified, sometimes left as is. There is also a useful `Sampler` class, that computes obstacle polygons and their heights - useful for creating graphs and adding points to it (like start and goal), as well as computes nodes of the flight graph through stochastic sampling followed by elimination of points that coincide with obstacles.
+
+The file also contains several `visualize_xxx` functions, used for visualizations in the notebooks.
+
+`motion_planning.py` is the driver for the project.
+run:
+```sh
+python motion_planning.py
+```
+with running simulator to compute a path and watch it fly!
 
 ### Implementing Your Path Planning Algorithm
 
+Here are the steps:
+
+#### 0. Pre-compute the graph
+
+Because the graph is similar to the map DVD used by GPS systems to compute routes, I feel it is perfectly justified to have it pre-computed. I compute the graph by stochastical sampling of the points and culling the ones that fall into an obstacle. The graph is computed and saved the very first time we run motion planning.
+
+**Note:** Since the simulator may abort the connection before the graph is actually computed, I have created the graph in the [Receding Horizon Notebook](https://github.com/fierval/fcnd/blob/master/motion_planning/Receding-Horizon.ipynb)
+
 #### 1. Set your global home position
-Here students should read the first line of the csv file, extract lat0 and lon0 as floating point values and use the self.set_home_position() method to set global home. Explain briefly how you accomplished this in your code.
 
+All data is read on `MotionPlanning` object instantiation. Home position is set at the top of `plan_path`
 
-And here is a lovely picture of our downtown San Francisco environment from above!
-![Map of SF](./misc/map.png)
+![start](images/start.png)
 
 #### 2. Set your current local position
-Here as long as you successfully determine your local position relative to global home you'll be all set. Explain briefly how you accomplished this in your code.
 
+In `plan_path` we retrieve our local position by calling `global_to_local` (defined in `planning_utils.py`)
+The coordinates we receive this way are then fed to our `pick_a_start` function, which simply adds the starting position (in this case - the center of the grid) to the graph.
 
-Meanwhile, here's a picture of me flying through the trees!
-![Forest Flying](./misc/in_the_trees.png)
+**Note:** Since all the points on the graph are computed relative to the center, there is no need to offset any of the waypoints! Another advantage of adding a bit chaos (or stochasticity) to our ordered life.
 
 #### 3. Set grid start position from local position
-This is another step in adding flexibility to the start location. As long as it works you're good to go!
+
+Add the starting point to the graph by calling `pick_a_start`
 
 #### 4. Set grid goal position from geodetic coords
-This step is to add flexibility to the desired goal location. Should be able to choose any (lat, lon) within the map and have it rendered to a goal location on the grid.
 
+In this implementation, we are striving for as "spectacular" paths as possible. This drone is seriously into aesthetics of flight, so we implement a heuristic to search for the goal (lines 226 - 231 in `motion_planning.py`):
+
+```python
+path = []
+tries = 0
+while(len(path) < 13 and tries < 30):
+    graph_goal = self.pick_a_goal()
+    path, _ = a_star_graph(self.graph, heuristic, graph_start, graph_goal)
+    tries += 1
+```
+
+The key here is `pick_a_goal` - the function that choses a number of random goals for us and if that goal can be added to the graph (it's not an obstacle of any kind)
 #### 5. Modify A* to include diagonal motion (or replace A* altogether)
 Minimal requirement here is to modify the code in planning_utils() to update the A* implementation to include diagonal motions on the grid that have a cost of sqrt(2), but more creative solutions are welcome. Explain the code you used to accomplish this step.
 
