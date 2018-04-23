@@ -30,12 +30,12 @@ Advantages:
 
 #### `motion_planning.py` and `planning_utils.py`
 
-`planning_utils.py` is a kitchen sink that consists all kinds of functions, useful and not so much. These are functions from lesson exercises, sometimes modified, sometimes left as is. There is also a useful `Sampler` class, that computes obstacle polygons and their heights. This is used for creating graphs and adding points to them (like start and goal), as well as computing nodes of the flight graph through stochastic sampling followed by elimination of points that coincide with obstacles.
+`planning_utils.py` is a kitchen sink that contains all kinds of functions, useful and not so much. These are functions from lesson exercises, sometimes modified, sometimes left as is. There is also a useful `Sampler` class, that computes obstacle polygons and their heights. This is used for creating graphs and adding points to them (like start and goal), as well as computing nodes of the flight graph through stochastic sampling followed by elimination of points that coincide with obstacles.
 
 The file also contains several `visualize_xxx` functions, used for visualizations in the notebooks.
 
 `motion_planning.py` is the driver for the project.
-run:
+
 ```sh
 python motion_planning.py
 ```
@@ -47,13 +47,13 @@ Here are the steps:
 
 #### 0. Pre-compute the graph
 
-Because the graph is similar to the map DVD used by GPS systems to compute routes, I feel it is perfectly justified to have it pre-computed. I compute the graph by stochastical sampling of the points and culling the ones that fall into an obstacle. The graph is computed and saved the very first time we run motion planning.
+Because the graph is similar to a map DVD used by GPS systems to compute routes, I feel it is perfectly justified to have it pre-computed. I compute the graph by stochastical sampling of the points and culling the ones that fall into an obstacle. The graph is computed and saved the very first time we run motion planning.
 
 **Note:** Since the simulator may abort the connection before the graph is actually computed, I have created the graph in the [Receding Horizon Notebook](https://github.com/fierval/fcnd/blob/master/motion_planning/Receding-Horizon.ipynb)
 
 #### 1. Set your global home position
 
-All data is read on `MotionPlanning` object instantiation. Home position is set at the top of `plan_path`
+All data is read upon instantiation of the `MotionPlanning` object. Home position is set at the top of `plan_path`
 
 ![start](images/start.png)
 
@@ -62,7 +62,7 @@ All data is read on `MotionPlanning` object instantiation. Home position is set 
 In `plan_path` we retrieve our local position by calling `global_to_local` (defined in `planning_utils.py`)
 The coordinates we receive this way are then fed to our `pick_a_start` function, which simply adds the starting position (in this case - the center of the grid) to the graph.
 
-**Note:** Since all the points on the graph are computed relative to the center, there is no need to offset any of the waypoints! Another advantage of adding a bit chaos (or stochasticity) to our ordered life.
+**Note:** Since all the points on the graph are computed relative to the center, there is no need to offset any of the waypoints! Another advantage of adding a bit of chaos (or stochasticity) to our ordered life.
 
 #### 3. Set grid start position from local position
 
