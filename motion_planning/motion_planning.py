@@ -200,6 +200,7 @@ class MotionPlanning(Drone):
         # this will throw if not decomposable
         lon, lat, alt = global_goal
         local_goal = global_to_local(global_goal, self.global_home)
+        heights = np.ones_like(self.heights) * (TARGET_ALTITUDE + SAFETY_DISTANCE)
         if not add_point_to_graph(local_goal, self.graph, self.polygons, heights, self.neighbors):
             raise ValueError("Goal could not be set")
         return tuple(local_goal)
