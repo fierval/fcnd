@@ -1,8 +1,7 @@
 ## Project: 3D Motion Planning
 
-**Click below see it fly**
+![flight](images/flight.png)
 
-[![Flying Drone](https://img.youtube.com/vi/h1Mf6xeok8g/0.jpg)](https://youtu.be/JccKcmcnVCU)
 
 # Required Steps for a Passing Submission:
 
@@ -19,7 +18,7 @@
 
 ### Introduction
 
-Unlike some drones out there that prefer to fly cautiously looking around before they take the next step, afraid to soar, wasting computing cycles, this drone lives dangerously. It flies in a range of heights (from 10 to 25 m), on a pre-computed graph of points spanning (most of) the collision grid.
+Unlike some drones out there that prefer to fly cautiously looking around before they take the next step, afraid to soar, wasting computational cycles, this drone lives dangerously. It flies in a range of heights (from 10 to 25 m), on a pre-computed graph of points spanning (most of) the collision grid.
 
 This approach should be complemented with a receding horizon algorithm (not implemented in this project) for flying on a non-static grid.
 
@@ -31,7 +30,7 @@ Advantages:
 
 #### `motion_planning.py` and `planning_utils.py`
 
-`planning_utils.py` is a kitchen sink that consists all kinds of functions, useful and not so much. These are functions from lesson exercises, sometimes modified, sometimes left as is. There is also a useful `Sampler` class, that computes obstacle polygons and their heights - useful for creating graphs and adding points to it (like start and goal), as well as computes nodes of the flight graph through stochastic sampling followed by elimination of points that coincide with obstacles.
+`planning_utils.py` is a kitchen sink that consists all kinds of functions, useful and not so much. These are functions from lesson exercises, sometimes modified, sometimes left as is. There is also a useful `Sampler` class, that computes obstacle polygons and their heights. This is used for creating graphs and adding points to them (like start and goal), as well as computes nodes of the flight graph through stochastic sampling followed by elimination of points that coincide with obstacles.
 
 The file also contains several `visualize_xxx` functions, used for visualizations in the notebooks.
 
@@ -81,24 +80,37 @@ while(len(path) < 13 and tries < 30):
     path, _ = a_star_graph(self.graph, heuristic, graph_start, graph_goal)
     tries += 1
 ```
-
 The key here is `pick_a_goal` - the function that choses a number of random goals for us and if that goal can be added to the graph (it's not an obstacle of any kind)
+
+Since we want a path of a certain length, we may have a few tries before we pick the satisfying goal. All the "failed" goals will be added to the graph - which is fine. They are all valid points and there will not be too many of them.
+
 #### 5. Modify A* to include diagonal motion (or replace A* altogether)
-Minimal requirement here is to modify the code in planning_utils() to update the A* implementation to include diagonal motions on the grid that have a cost of sqrt(2), but more creative solutions are welcome. Explain the code you used to accomplish this step.
+
+Graph creation was modified to include the actual cost of travel along the edge as the Euclidean distance between its nodes.
+
+`extract_polygons` was modified to "pad" polygons with a safe travel distance.
 
 #### 6. Cull waypoints
-For this step you can use a collinearity test or ray tracing method like Bresenham. The idea is simply to prune your path of unnecessary waypoints. Explain the code you used to accomplish this step.
 
+Since all the points in the graph are in actually in 3D and selected at random, colinearity is not going to be useful at all. Brezenham could be useful, but tough to compute. In this exercise, I am trying to find a path with **more** rather than **less** points because by construction large areas of the grid are accessible through few waypoints.
 
+The optimization that comes to mind would be to create a less connected graph:
+![graph](images/graph.png)
+
+Here the number of connected neighbors is 12 - a bit high, but I could not make all the components connect otherwise! Something to think about.
 
 ### Execute the flight
-#### 1. Does it work?
-It works!
+
+Here is a computed path:
+
+![path](images/path.png)
+
+#### See it fly!
+
+[![Flying Drone](https://img.youtube.com/vi/h1Mf6xeok8g/0.jpg)](https://youtu.be/JccKcmcnVCU)
 
 ### Double check that you've met specifications for each of the [rubric](https://review.udacity.com/#!/rubrics/1534/view) points.
 
 # Extra Challenges: Real World Planning
 
 For an extra challenge, consider implementing some of the techniques described in the "Real World Planning" lesson. You could try implementing a vehicle model to take dynamic constraints into account, or implement a replanning method to invoke if you get off course or encounter unexpected obstacles.
-
-
