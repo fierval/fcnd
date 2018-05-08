@@ -141,8 +141,8 @@ V3F QuadControl::RollPitchControl(V3F accelCmd, Quaternion<float> attitude, floa
   float bcxTarget = accelCmd.x / cD;
   float bcyTarget = accelCmd.y / cD;
 
-  bcxTarget = CONSTRAIN(bcxTarget, -maxTiltAngle, maxTiltAngle);
-  bcyTarget = CONSTRAIN(bcyTarget, -maxTiltAngle, maxTiltAngle);
+  bcxTarget = -CONSTRAIN(bcxTarget, -maxTiltAngle, maxTiltAngle);
+  bcyTarget = -CONSTRAIN(bcyTarget, -maxTiltAngle, maxTiltAngle);
 
   float bcxDotCmd = kpBank * (bcxTarget - R(0, 2));
   float bcyDotCmd = kpBank * (bcyTarget - R(1, 2));
