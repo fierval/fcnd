@@ -99,11 +99,13 @@ V3F QuadControl::BodyRateControl(V3F pqrCmd, V3F pqr)
   //  - you'll need parameters for moments of inertia Ixx, Iyy, Izz
   //  - you'll also need the gain parameter kpPQR (it's a V3F)
 
-  V3F momentCmd;
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-  
+  V3F pqrError = kpPQR * (pqrCmd - pqr);
+  V3F momentOfInertia = V3F(Ixx, Iyy, Izz);
+
+  V3F momentCmd = pqrError * momentOfInertia ;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
