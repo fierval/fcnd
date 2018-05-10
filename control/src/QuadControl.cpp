@@ -183,14 +183,17 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
 
   Mat3x3F R = attitude.RotationMatrix_IwrtB();
   float thrust = 0;
-
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
   float bz = R(2, 2);
   float g = 9.81;
   float velZComp = CONSTRAIN(kpPosZ * (posZCmd - posZ) + velZCmd, -maxAscentRate, maxDescentRate);
 
+
   float accComp = kpVelZ * (velZComp - velZ) + accelZCmd;
+  integratedAltitudeError += (posZCmd - posZ) * dt;
+  accComp += integratedAltitudeError;
+
   thrust = CONSTRAIN(-mass * (accComp - g)/ bz, -maxMotorThrust, -minMotorThrust);
 
 
@@ -231,21 +234,20 @@ V3F QuadControl::LateralPositionControl(V3F posCmd, V3F velCmd, V3F pos, V3F vel
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
   V3F velComponent = kpPosXY * (posCmd - pos);
   V3F accComponent = kpVelXY * (velCmd - vel);
-  velComponent.z = 0;
 
-  if (velComponent.mag() > maxSpeedXY)
+  if (velComponent.magXY() > maxSpeedXY)
   {
     velComponent *= maxSpeedXY / velComponent.mag();
   }
 
   accelCmd += velComponent + accComponent;
-  accelCmd.z = 0;
 
-  if (accelCmd.mag() > maxAccelXY)
+  if (accelCmd.magXY() > maxAccelXY)
   {
-    accelCmd *= maxAccelXY / accelCmd.mag();
+    accelCmd *= maxAccelXY / accelCmd.magXY();
   }
 
+  accelCmd.z = 0;
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
   return accelCmd;
