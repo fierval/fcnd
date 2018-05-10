@@ -188,15 +188,13 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
   float bz = R(2, 2);
   float g = 9.81;
   float velZComp = CONSTRAIN(kpPosZ * (posZCmd - posZ) + velZCmd, -maxAscentRate, maxDescentRate);
-
-
+  
   float accComp = kpVelZ * (velZComp - velZ) + accelZCmd;
   integratedAltitudeError += (posZCmd - posZ) * dt;
   accComp += integratedAltitudeError;
 
-  thrust = CONSTRAIN(-mass * (accComp - g)/ bz, -maxMotorThrust, -minMotorThrust);
-
-
+  thrust = -mass * (accComp - g)/ bz;
+  
   /////////////////////////////// END STUDENT CODE ////////////////////////////
   
   return thrust;
