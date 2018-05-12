@@ -14,5 +14,7 @@ Where:
 
 <img src="https://latex.codecogs.com/gif.latex?\tau_x&space;=&space;\frac{T_x}{l},&space;\&space;\tau_y&space;=&space;\frac{T_y}{l},&space;\&space;\tau_z&space;=&space;\frac{T_z}{\kappa},&space;\&space;l&space;=&space;\sqrt{L}&space;\text{&space;for&space;convenience}" title="\tau_x = \frac{T_x}{l}, \ \tau_y = \frac{T_y}{l}, \ \tau_z = \frac{T_z}{\kappa}, \ l = \sqrt{L} \text{ for convenience}" />
 
-We solve the system for the individual forces and get our run command code.
+We solve the system for individual forces and get our run command code:
+
+<img src="https://latex.codecogs.com/gif.latex?\begin{cases}&space;&&space;F_0&space;=&space;\frac{1}{4}(\tau_x&space;&plus;&space;\tau_y&space;-&space;\tau_z&space;&plus;&space;c)&space;\\&space;&&space;F_1&space;=&space;\frac{1}{4}(-\tau_x&space;&plus;&space;\tau_y&space;&plus;&space;\tau_z&space;&plus;&space;c)&space;\\&space;&&space;F_2&space;=&space;\frac{1}{4}(\tau_x&space;-&space;\tau_y&space;&plus;&space;\tau_z&space;&plus;&space;c)&space;\\&space;&&space;F_3&space;=&space;\frac{1}{4}(-\tau_x&space;-&space;\tau_y&space;-&space;\tau_z&space;&plus;&space;c)&space;\end{cases}" title="\begin{cases} & F_0 = \frac{1}{4}(\tau_x + \tau_y - \tau_z + c) \\ & F_1 = \frac{1}{4}(-\tau_x + \tau_y + \tau_z + c) \\ & F_2 = \frac{1}{4}(\tau_x - \tau_y + \tau_z + c) \\ & F_3 = \frac{1}{4}(-\tau_x - \tau_y - \tau_z + c) \end{cases}" />
 
