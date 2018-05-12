@@ -229,14 +229,15 @@ V3F QuadControl::LateralPositionControl(V3F posCmd, V3F velCmd, V3F pos, V3F vel
   // to this variable
   V3F accelCmd = accelCmdFF;
 
+  if (velCmd.magXY() > maxSpeedXY)
+  {
+    velCmd *= maxSpeedXY / velCmd.mag();
+  }
+
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
   V3F velComponent = kpPosXY * (posCmd - pos);
   V3F accComponent = kpVelXY * (velCmd - vel);
 
-  //if (velComponent.magXY() > maxSpeedXY)
-  //{
-  //  velComponent *= maxSpeedXY / velComponent.mag();
-  //}
 
   accelCmd += velComponent + accComponent;
 
