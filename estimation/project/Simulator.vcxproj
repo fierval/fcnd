@@ -124,6 +124,8 @@
     <Text Include="..\config\10_MagUpdate.txt" />
     <Text Include="..\config\11_GPSUpdate.txt" />
     <Text Include="..\config\LastScenario.txt" />
+    <Text Include="..\config\log\Graph1.txt" />
+    <Text Include="..\config\log\Graph2.txt" />
     <Text Include="..\config\QuadControlParams.txt" />
     <Text Include="..\config\QuadEstimatorEKF.txt" />
     <Text Include="..\config\QuadPhysicalParams.txt" />

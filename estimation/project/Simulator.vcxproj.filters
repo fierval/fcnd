@@ -33,6 +33,9 @@
     <Filter Include="config\traj">
       <UniqueIdentifier>{678ef272-3a9b-4c03-b9fd-bc8f0ab5b8e8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="config\log">
+      <UniqueIdentifier>{f97ddfde-dab9-4799-bf30-a437da712771}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -392,6 +395,12 @@
     </Text>
     <Text Include="..\config\QuadControlParams.txt">
       <Filter>config</Filter>
+    </Text>
+    <Text Include="..\config\log\Graph1.txt">
+      <Filter>config\log</Filter>
+    </Text>
+    <Text Include="..\config\log\Graph2.txt">
+      <Filter>config\log</Filter>
     </Text>
   </ItemGroup>
 </Project>
