@@ -164,7 +164,25 @@ VectorXf QuadEstimatorEKF::PredictState(VectorXf curState, float dt, V3F accel, 
   Quaternion<float> attitude = Quaternion<float>::FromEuler123_RPY(rollEst, pitchEst, curState(6));
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+  V3F accelGlobal = attitude.Rotate_BtoI(accel);
+  
+  // current state - shorthand
+  V3F x_t(curState(0), curState(1), curState(2));
+  V3F x_t_dot(curState(3), curState(4), curState(5));
+  
+  V3F transCoords = x_t_dot * dt;
+  V3F transVel = accelGlobal * dt;
+  transVel.z -= (float)CONST_GRAVITY * dt;
 
+  //Yaw
+  predictedState(6) = curState(6);
+
+  for (int i = 0; i < 3; i++)
+  {
+    predictedState(i) += transCoords[i];
+    predictedState(3 + i) += transVel[i];
+  }
+  
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -191,7 +209,7 @@ MatrixXf QuadEstimatorEKF::GetRbgPrime(float roll, float pitch, float yaw)
   //   that your calculations are reasonable
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-
+  
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
