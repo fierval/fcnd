@@ -33,7 +33,9 @@
     <ClCompile Include="..\src\MavlinkNode\MavlinkNode.cpp" />
     <ClCompile Include="..\src\MavlinkNode\MavlinkTranslation.cpp" />
     <ClCompile Include="..\src\MavlinkNode\PracticalSocket.cpp" />
-    <ClCompile Include="..\src\QuadControl.cpp" />
+    <ClCompile Include="..\src\QuadControl.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\src\QuadControl_ideal.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -112,6 +114,7 @@
     <None Include="..\config\traj\MakePeriodicTrajectory.py" />
     <None Include="..\config\traj\MakeSpiralTrajectory.py" />
     <None Include="..\lib\matrix\LICENSE" />
+    <None Include="..\src\Trajectory.cpp.vsspell" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\config\01_Intro.txt" />

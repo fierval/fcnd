@@ -295,6 +295,7 @@
     <None Include="..\config\traj\MakeSpiralTrajectory.py">
       <Filter>config\traj</Filter>
     </None>
+    <None Include="..\src\Trajectory.cpp.vsspell" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\config\01_Intro.txt">
@@ -396,9 +397,6 @@
     <Text Include="..\config\Simulation.txt">
       <Filter>config</Filter>
     </Text>
-    <Text Include="..\config\QuadControlParams.txt">
-      <Filter>config</Filter>
-    </Text>
     <Text Include="..\config\log\Graph1.txt">
       <Filter>config\log</Filter>
     </Text>
@@ -406,6 +404,9 @@
       <Filter>config\log</Filter>
     </Text>
     <Text Include="..\config\QuadControlParams_ideal.txt">
+      <Filter>config</Filter>
+    </Text>
+    <Text Include="..\config\QuadControlParams.txt">
       <Filter>config</Filter>
     </Text>
   </ItemGroup>
