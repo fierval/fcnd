@@ -2,7 +2,7 @@
 
 ## Step 1: Standard Deviation of Sensor Measurements
 
-Collected sensor data and a small python script computes STDs for both cases:
+Collected sensor data and created a small python script computes STDs for both cases:
 
 ```python
 import pandas as pd
@@ -24,8 +24,8 @@ Used the already provided integration scheme utilizing quaternions. This is also
 
 This is by far the most complex step in this project:
 
-* Followed the paper [paper](https://www.overleaf.com/read/vymfngphcccj#/54894644/) to implement transition function <a href="https://www.codecogs.com/eqnedit.php?latex=g(x_t,&space;u_t,&space;\Delta&space;t)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?g(x_t,&space;u_t,&space;\Delta&space;t)" title="g(x_t, u_t, \Delta t)" /></a>.
-This was easy, no need to code the rotation matrix sine the library already provides a way to rotate acceleration from body to globabl frame.
+* Followed the [paper](https://www.overleaf.com/read/vymfngphcccj#/54894644/) to implement transition function <a href="https://www.codecogs.com/eqnedit.php?latex=g(x_t,&space;u_t,&space;\Delta&space;t)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?g(x_t,&space;u_t,&space;\Delta&space;t)" title="g(x_t, u_t, \Delta t)" /></a>.
+This was easy, no need to code the rotation matrix sine the library already provides a way to rotate acceleration from body to global frame.
 * Implemented the <a href="https://www.codecogs.com/eqnedit.php?latex=R'_{bg}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?R'_{bg}" title="R'_{bg}" /></a> generating function `GetRgbPrime`
 * Computed the Jacobian <a href="https://www.codecogs.com/eqnedit.php?latex=g'(x_t,&space;u_t,&space;\Delta&space;t)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?g'(x_t,&space;u_t,&space;\Delta&space;t)" title="g'(x_t, u_t, \Delta t)" /></a> of <a href="https://www.codecogs.com/eqnedit.php?latex=g(x_t,&space;u_t,&space;\Delta&space;t)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?g(x_t,&space;u_t,&space;\Delta&space;t)" title="g(x_t, u_t, \Delta t)" /></a>
 * To update the covariance matrix, used the EKF pseudocode from the [paper](https://www.overleaf.com/read/vymfngphcccj#/54894644/).
@@ -40,7 +40,7 @@ And our covariances yield the following corridors for estimated velocities:
 
 ## Step 4: Magnetometer update
 
-This is an easy update. The only "gotcha" provided as a hint in the code is to add/subtract `2*PI` to the measurement when the difference between predicted and measured is greater than `abs(PI)`
+This is an easy update. The only "gotcha" provided as a hint in the code is to add/subtract `2*PI` to/from the measurement when the difference between predicted and measured yaw is greater than `abs(PI)`
 
 ![Step 4](myimages/Step4.png)
 
@@ -48,13 +48,13 @@ This is an easy update. The only "gotcha" provided as a hint in the code is to a
 
 This is another easy update, based on section 7.3.1 of the [paper](https://www.overleaf.com/read/vymfngphcccj#/54894644/)
 
-I regard this step and the one that followed as one step, since here we get to actually "close the loop" on the last two topics of Term 1.
+I regard this step and the one that follows as one step, since here we get to actually "close the loop" on the last two topics of Term 1.
 
 ![Step 5](myimages/step5.png)
 
 ## Step 6: Bringing it All Together
 
-The video is posted on YouTube. De-tuned in 2 steps:
+The video is posted on [YouTube](http://www.youtube.com/watch?v=iN-5Ts82Kvg). De-tuned in 2 steps:
 
 * De-tune with "ideal" sensors (un-comment sensor std lines for Scenario 11)
 * De-tune with "real" sensors (comment sensor std lines for Scenario 11)
@@ -62,3 +62,5 @@ The video is posted on YouTube. De-tuned in 2 steps:
 Hint in the [README](README.md) to decrease gains by about 30% was a great help.
 
 [![Drone Flying](http://img.youtube.com/vi/iN-5Ts82Kvg/0.jpg)](http://www.youtube.com/watch?v=iN-5Ts82Kvg)
+
+It was an awesome, fun flight!
