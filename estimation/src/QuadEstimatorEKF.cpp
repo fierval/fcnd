@@ -284,7 +284,7 @@ void QuadEstimatorEKF::Predict(float dt, V3F accel, V3F gyro)
     gPrime(i + 3, QUAD_EKF_NUM_STATES - 1) = accComponent(i);
   }
 
-  newState = gPrime * ekfState * gPrime.transpose() + Q;
+  ekfCov = gPrime * (ekfCov * gPrime.transpose()) + Q;
   
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
