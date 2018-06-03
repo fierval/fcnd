@@ -264,18 +264,13 @@ void QuadEstimatorEKF::Predict(float dt, V3F accel, V3F gyro)
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-  // Rotate acceleration to global frame
-  Quaternion<float> attitude = Quaternion<float>::FromEuler123_RPY(rollEst, pitchEst, ekfState(6));
-  V3F accelGlobalDt = attitude.Rotate_BtoI(accel) * dt;
-
   // Shorthand: compute Rgb' * u * dt, for acceleration only
   VectorXf u(3);
-  u(0) = accelGlobalDt.x;
-  u(1) = accelGlobalDt.y;
-  u(2) = accelGlobalDt.z;
+  u(0) = accel.x;
+  u(1) = accel.y;
+  u(2) = accel.z;
 
-  VectorXf accComponent(3);
-  accComponent = RbgPrime * u;
+  VectorXf accComponent = RbgPrime * u * dt;
 
   // finish Jacobian calc
   for (int i = 0; i < 3; i++)
