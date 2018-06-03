@@ -2,7 +2,7 @@
 
 ## Step 1: Standard Deviation of Sensor Measurements
 
-Collected sensor data and created a small python script computes STDs for both cases:
+Collected sensor data and created a small python script that computes STDs for both cases:
 
 ```python
 import pandas as pd
@@ -11,8 +11,9 @@ collected_data = r"C:\Git\udacity\fcnd\estimation\config\log\Graph2.txt"
 df = pd.read_csv(collected_data)
 df.iloc[:, 1].std()
 ```
-
 ![Std Sensors](myimages/step1.png)
+
+STDs computed this way match the ones in `SimpleSensors.txt` very closely.
 
 ## Step 2: Better Gyro Attitude Integration
 
@@ -25,9 +26,9 @@ Used the already provided integration scheme utilizing quaternions. This is also
 This is by far the most complex step in this project:
 
 * Followed the [paper](https://www.overleaf.com/read/vymfngphcccj#/54894644/) to implement transition function <a href="https://www.codecogs.com/eqnedit.php?latex=g(x_t,&space;u_t,&space;\Delta&space;t)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?g(x_t,&space;u_t,&space;\Delta&space;t)" title="g(x_t, u_t, \Delta t)" /></a>.
-This was easy, no need to code the rotation matrix sine the library already provides a way to rotate acceleration from body to global frame.
-* Implemented the <a href="https://www.codecogs.com/eqnedit.php?latex=R'_{bg}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?R'_{bg}" title="R'_{bg}" /></a> generating function `GetRgbPrime`
-* Computed the Jacobian <a href="https://www.codecogs.com/eqnedit.php?latex=g'(x_t,&space;u_t,&space;\Delta&space;t)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?g'(x_t,&space;u_t,&space;\Delta&space;t)" title="g'(x_t, u_t, \Delta t)" /></a> of <a href="https://www.codecogs.com/eqnedit.php?latex=g(x_t,&space;u_t,&space;\Delta&space;t)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?g(x_t,&space;u_t,&space;\Delta&space;t)" title="g(x_t, u_t, \Delta t)" /></a>
+This was easy, no need to code the rotation matrix since the library already provides a way to rotate acceleration from body to global frame.
+* Implemented the <a href="https://www.codecogs.com/eqnedit.php?latex=R'_{bg}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?R'_{bg}" title="R'_{bg}" /></a> as `GetRgbPrime`function.
+* Computed Jacobian <a href="https://www.codecogs.com/eqnedit.php?latex=g'(x_t,&space;u_t,&space;\Delta&space;t)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?g'(x_t,&space;u_t,&space;\Delta&space;t)" title="g'(x_t, u_t, \Delta t)" /></a> of <a href="https://www.codecogs.com/eqnedit.php?latex=g(x_t,&space;u_t,&space;\Delta&space;t)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?g(x_t,&space;u_t,&space;\Delta&space;t)" title="g(x_t, u_t, \Delta t)" /></a>
 * To update the covariance matrix, used the EKF pseudocode from the [paper](https://www.overleaf.com/read/vymfngphcccj#/54894644/).
 
 As the result, we obtain the following estimates for Y and Z positions and velocities:
@@ -56,8 +57,8 @@ I regard this step and the one that follows as one step, since here we get to ac
 
 The video is posted on [YouTube](http://www.youtube.com/watch?v=iN-5Ts82Kvg). De-tuned in 2 steps:
 
-* De-tune with "ideal" sensors (un-comment sensor std lines for Scenario 11)
-* De-tune with "real" sensors (comment sensor std lines for Scenario 11)
+* with "ideal" sensors (un-comment sensor std lines for Scenario 11)
+* with "real" sensors (comment sensor std lines for Scenario 11)
 
 Hint in the [README](README.md) to decrease gains by about 30% was a great help.
 
