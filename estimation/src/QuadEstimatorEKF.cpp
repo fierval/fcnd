@@ -209,8 +209,16 @@ MatrixXf QuadEstimatorEKF::GetRbgPrime(float roll, float pitch, float yaw)
   //   that your calculations are reasonable
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-  
+  float cosPhi = cos(roll);
+  float sinPhi = sin(roll);
+  float cosTheta = cos(pitch);
+  float sinTheta = sin(pitch);
+  float cosPsi = cos(yaw);
+  float sinPsi = sin(yaw);
 
+  RbgPrime.row(0) << -cosTheta * sinPsi, -sinPhi * sinTheta * sinPsi - cosPhi * cosPsi, -cosPhi * sinTheta * sinPsi + sinPhi * cosPsi ;
+  RbgPrime.row(1) << cosTheta * cosPsi, sinPhi * sinTheta * cosPsi - cosPhi * sinPsi, cosPhi * sinTheta * cosPsi + sinPhi * sinPsi;
+  
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
   return RbgPrime;
@@ -255,8 +263,24 @@ void QuadEstimatorEKF::Predict(float dt, V3F accel, V3F gyro)
   gPrime.setIdentity();
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+  Quaternion<float> attitude = Quaternion<float>::FromEuler123_RPY(rollEst, pitchEst, ekfState(6));
+  V3F accelGlobalDt = attitude.Rotate_BtoI(accel) * dt;
 
+  VectorXf u(3);
+  u(0) = accelGlobalDt.x;
+  u(1) = accelGlobalDt.y;
+  u(2) = accelGlobalDt.z;
 
+  VectorXf accComponent(3);
+  accComponent = RbgPrime * u;
+
+  for (int i = 0; i < 3; i++)
+  {
+    gPrime(i, i + 3) = dt;
+    gPrime(i + 3, QUAD_EKF_NUM_STATES - 1) = accComponent(i);
+  }
+
+  
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
   ekfState = newState;
