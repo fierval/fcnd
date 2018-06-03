@@ -34,6 +34,9 @@
     <ClCompile Include="..\src\MavlinkNode\MavlinkTranslation.cpp" />
     <ClCompile Include="..\src\MavlinkNode\PracticalSocket.cpp" />
     <ClCompile Include="..\src\QuadControl.cpp" />
+    <ClCompile Include="..\src\QuadControl_ideal.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\src\QuadEstimatorEKF.cpp" />
     <ClCompile Include="..\src\Simulation\BaseDynamics.cpp" />
     <ClCompile Include="..\src\Simulation\QuadDynamics.cpp" />
@@ -127,6 +130,7 @@
     <Text Include="..\config\log\Graph1.txt" />
     <Text Include="..\config\log\Graph2.txt" />
     <Text Include="..\config\QuadControlParams.txt" />
+    <Text Include="..\config\QuadControlParams_ideal.txt" />
     <Text Include="..\config\QuadEstimatorEKF.txt" />
     <Text Include="..\config\QuadPhysicalParams.txt" />
     <Text Include="..\config\Scenarios.txt" />

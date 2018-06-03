@@ -14,10 +14,11 @@ QVelZStd = .005
 QYawStd = .1
 
 # GPS measurement std deviations
-GPSPosXYStd = 1
-GPSPosZStd = 3
-GPSVelXYStd = .1
-GPSVelZStd = .3
+GPSPosXYStd = .09
+GPSVelXYStd = .005
+
+GPSPosZStd = 3.5
+GPSVelZStd = 0.2
 
 # Magnetometer
 MagYawStd = .1

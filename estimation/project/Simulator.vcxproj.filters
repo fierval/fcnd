@@ -103,6 +103,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\QuadEstimatorEKF.cpp" />
+    <ClCompile Include="..\src\QuadControl_ideal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Math\Quaternion.h">
@@ -401,6 +404,9 @@
     </Text>
     <Text Include="..\config\log\Graph2.txt">
       <Filter>config\log</Filter>
+    </Text>
+    <Text Include="..\config\QuadControlParams_ideal.txt">
+      <Filter>config</Filter>
     </Text>
   </ItemGroup>
 </Project>
