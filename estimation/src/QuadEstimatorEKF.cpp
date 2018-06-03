@@ -167,7 +167,6 @@ VectorXf QuadEstimatorEKF::PredictState(VectorXf curState, float dt, V3F accel, 
   V3F accelGlobal = attitude.Rotate_BtoI(accel);
   
   // current state - shorthand
-  V3F x_t(curState(0), curState(1), curState(2));
   V3F x_t_dot(curState(3), curState(4), curState(5));
   
   V3F transCoords = x_t_dot * dt;
