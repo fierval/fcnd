@@ -265,9 +265,7 @@ void QuadEstimatorEKF::Predict(float dt, V3F accel, V3F gyro)
 
   // Shorthand: compute Rgb' * u * dt, for acceleration only
   VectorXf u(3);
-  u(0) = accel.x;
-  u(1) = accel.y;
-  u(2) = accel.z;
+  u.col(0) << accel.x, accel.y, accel.z;
 
   VectorXf accComponent = RbgPrime * u * dt;
 
